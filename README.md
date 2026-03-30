@@ -1,6 +1,6 @@
 # Manage Kubernetes Clusters on AWS Using Kops
 
-This repository provides a step-by-step guide and helper scripts to create, manage, and delete a Kubernetes cluster on AWS using `kops` (Kubernetes Operations). This is based on the blog post ["Manage Kubernetes Clusters on AWS Using Kops"](https://aws.amazon.com/blogs/compute/kubernetes-clusters-aws-kops/).
+This repository provides a step-by-step guide and helper scripts to create, manage, and delete a Kubernetes cluster on AWS using `kops` (Kubernetes Operations). This is based on the blog post ["Manage Kubernetes Clusters on AWS Using Kops"](https://aws.amazon.com/blogs/compute/manage-kubernetes-clusters-on-aws-using-kops/).
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -10,7 +10,8 @@ This repository provides a step-by-step guide and helper scripts to create, mana
 - [4. DNS Configuration](#4-dns-configuration)
 - [5. Create the Kubernetes Cluster](#5-create-the-kubernetes-cluster)
 - [6. Upgrade the Kubernetes Cluster](#6-upgrade-the-kubernetes-cluster)
-- [7. Delete the Kubernetes Cluster](#7-delete-the-kubernetes-cluster)
+- [7. Scaling Techniques](#7-scaling-techniques)
+- [8. Delete the Kubernetes Cluster](#8-delete-the-kubernetes-cluster)
 
 ---
 
@@ -137,7 +138,51 @@ kops rolling-update cluster \
 ```
 You can find an automated script for this in `scripts/05-upgrade-cluster.sh`.
 
-## 7. Delete the Kubernetes Cluster
+## 7. Scaling Techniques
+
+Kubernetes offers powerful autoscaling capabilities to handle fluctuating workloads efficiently. The two main approaches for scaling your applications are Horizontal Pod Autoscaler (HPA) and Vertical Pod Autoscaler (VPA).
+
+### Horizontal Pod Autoscaler (HPA)
+
+HPA automatically updates a workload resource (such as a Deployment or StatefulSet), scaling the number of pods to match demand. You can create an autoscaler that watches CPU usage and scales automatically:
+
+```sh
+kubectl autoscale deployment <deployment-name> \
+  --min=2 \
+  --max=10 \
+  --cpu-percent=50
+```
+
+This means:
+- `min=2` — always keep at least 2 pods running
+- `max=10` — never exceed 10 pods
+- `cpu-percent=50` — scale up when the average CPU usage across pods crosses 50%
+
+*Note: For HPA to work based on resource utilization, the [Metrics Server](https://github.com/kubernetes-sigs/metrics-server) must be installed in your cluster.*
+
+### Vertical Pod Autoscaler (VPA)
+
+While HPA scales the *number* of pods (scale-out), VPA scales the *size* of the pods (scale-up). It automatically adjusts the CPU and Memory requests/limits for your pods. This is highly useful for stateful applications or workloads that cannot be easily scaled horizontally. 
+
+To use VPA, you configure a `VerticalPodAutoscaler` object:
+
+```yaml
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: my-app-vpa
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       <deployment-name>
+  updatePolicy:
+    updateMode: "Auto"
+```
+The VPA will automatically restart your pods with the newly calculated CPU and memory reservations based on historic and current usage.
+You can find examples in `scripts/07-scaling-techniques.sh`.
+
+## 8. Delete the Kubernetes Cluster
 
 Ensure that all resources created by the cluster are appropriately cleaned up.
 
