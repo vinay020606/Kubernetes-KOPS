@@ -1,6 +1,6 @@
 # Manage Kubernetes Clusters on AWS Using Kops
 
-This repository provides a step-by-step guide and helper scripts to create, manage, and delete a Kubernetes cluster on AWS using `kops` (Kubernetes Operations). This is based on the blog post ["Manage Kubernetes Clusters on AWS Using Kops"](https://aws.amazon.com/blogs/compute/manage-kubernetes-clusters-on-aws-using-kops/) by Arun Gupta.
+This repository provides a step-by-step guide and helper scripts to create, manage, and delete a Kubernetes cluster on AWS using `kops` (Kubernetes Operations). This is based on the blog post ["Manage Kubernetes Clusters on AWS Using Kops"](https://aws.amazon.com/blogs/compute/manage-kubernetes-clusters-on-aws-using-kops/).
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
